@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NFL Draft Report Cards 2010–2022</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<style>
+:root{--bg:#f5f4f0;--surface:#fff;--surface2:#f0efe9;--border:rgba(0,0,0,0.08);--border2:rgba(0,0,0,0.14);--text:#1a1a1a;--muted:#666;--dim:#999;--green:#0a7c55;--green-bg:#e6f7f1;--red:#c0392b;--red-bg:#fdf0ee;--blue:#1a5fa8;--blue-bg:#e8f1fb;--amber:#b35c00;--amber-bg:#fef3e2}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min-height:100vh}
+.header{background:var(--surface);border-bottom:1px solid var(--border);padding:2rem 2.5rem 1.5rem}
+.header-inner{max-width:1400px;margin:0 auto;display:flex;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;gap:1rem}
+.header h1{font-family:'Bebas Neue',sans-serif;font-size:clamp(32px,5vw,56px);letter-spacing:0.02em;line-height:1}
+.header h1 em{color:var(--blue);font-style:normal}
+.header-desc{font-size:13px;color:var(--muted);margin-top:6px;max-width:420px;line-height:1.5}
+.stat-pills{display:flex;gap:10px;flex-wrap:wrap}
+.stat-pill{background:var(--surface2);border:1px solid var(--border);border-radius:100px;padding:8px 16px;display:flex;gap:10px;align-items:center}
+.sp-val{font-family:'Bebas Neue',sans-serif;font-size:22px;color:var(--blue);line-height:1}
+.sp-lbl{font-size:11px;color:var(--muted);line-height:1.3}
+.explainer{background:var(--blue-bg);border-bottom:1px solid rgba(26,95,168,0.15);padding:0.85rem 2.5rem;font-size:13px;color:var(--blue)}
+.explainer-inner{max-width:1400px;margin:0 auto}
+.controls{background:var(--surface);border-bottom:1px solid var(--border);padding:0.85rem 2.5rem;position:sticky;top:0;z-index:20}
+.controls-inner{max-width:1400px;margin:0 auto;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.ctrl-label{font-size:12px;color:var(--muted);white-space:nowrap}
+.pill{font-size:12px;padding:5px 12px;border-radius:100px;border:1px solid var(--border2);background:transparent;color:var(--muted);cursor:pointer;transition:all 0.15s;font-family:'DM Sans',sans-serif}
+.pill:hover{border-color:var(--blue);color:var(--blue)}
+.pill.active{background:var(--blue);border-color:var(--blue);color:#fff;font-weight:500}
+.search-input{margin-left:auto;font-size:13px;padding:6px 14px;border:1px solid var(--border2);border-radius:100px;background:var(--surface2);color:var(--text);font-family:'DM Sans',sans-serif;outline:none;width:180px}
+.search-input:focus{border-color:var(--blue)}
+.search-input::placeholder{color:var(--dim)}
+.body-wrap{max-width:1400px;margin:0 auto;padding:1.5rem 2.5rem 3rem;display:grid;grid-template-columns:1fr 340px;gap:1.5rem;align-items:start}
+.count-line{font-size:12px;color:var(--muted);margin-bottom:1rem}
+.team-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(165px,1fr));gap:10px}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:14px;cursor:pointer;transition:all 0.15s;position:relative}
+.card:hover{border-color:var(--border2);box-shadow:0 4px 16px rgba(0,0,0,0.06);transform:translateY(-2px)}
+.card.active{border:2px solid var(--blue);box-shadow:0 0 0 3px rgba(26,95,168,0.1)}
+.card-logo{width:40px;height:40px;object-fit:contain;margin-bottom:8px;display:block}
+.card-logo-fb{width:40px;height:40px;border-radius:8px;background:var(--surface2);display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:13px;color:var(--muted);margin-bottom:8px}
+.card-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
+.card-team{font-family:'Bebas Neue',sans-serif;font-size:17px;letter-spacing:0.04em}
+.card-rank{font-size:10px;color:var(--dim);font-family:'DM Mono',monospace}
+.card-delta{font-family:'Bebas Neue',sans-serif;font-size:28px;line-height:1;margin-bottom:2px}
+.card-delta-sub{font-size:10px;color:var(--muted);margin-bottom:8px}
+.card-grade{display:inline-block;font-size:11px;font-weight:600;padding:2px 8px;border-radius:5px;margin-bottom:8px;font-family:'DM Mono',monospace}
+.card-stats{display:flex;gap:8px}
+.cs{font-size:10px;color:var(--muted)}
+.cs b{color:var(--text);font-weight:500}
+.era-badge{position:absolute;top:8px;right:8px;font-size:9px;font-family:'DM Mono',monospace;background:var(--surface2);color:var(--dim);padding:2px 5px;border-radius:4px;border:1px solid var(--border)}
+/* SIDEBAR */
+.sidebar{position:sticky;top:80px}
+.sidebar-card{background:var(--surface);border:1px solid var(--border);border-radius:16px;overflow:hidden}
+.sidebar-empty{padding:3rem 1.5rem;text-align:center;color:var(--muted);font-size:13px;line-height:1.6}
+.sidebar-empty .arrow{font-size:28px;color:var(--dim);margin-bottom:10px}
+.detail{display:none}
+.detail.open{display:block}
+.detail-hero{padding:1.25rem 1.5rem;border-bottom:1px solid var(--border);display:flex;gap:14px;align-items:center}
+.detail-logo{width:54px;height:54px;object-fit:contain}
+.detail-logo-fb{width:54px;height:54px;background:var(--surface2);border-radius:10px;display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:20px;color:var(--muted)}
+.detail-team{font-family:'Bebas Neue',sans-serif;font-size:30px;line-height:1}
+.detail-rank{font-size:12px;color:var(--muted);margin-top:2px}
+.detail-grade-row{padding:1rem 1.5rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px}
+.detail-grade-letter{font-family:'Bebas Neue',sans-serif;font-size:60px;line-height:1}
+.detail-grade-desc{font-size:12px;color:var(--muted);line-height:1.5}
+/* ERA TOGGLE */
+.era-toggle{padding:0.75rem 1.5rem;border-bottom:1px solid var(--border);display:none}
+.era-toggle.visible{display:block}
+.era-toggle-label{font-size:11px;color:var(--muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:0.06em;font-family:'DM Mono',monospace}
+.era-btns{display:flex;gap:6px}
+.era-btn{flex:1;padding:6px 8px;font-size:12px;font-family:'DM Sans',sans-serif;border:1px solid var(--border2);border-radius:8px;background:transparent;color:var(--muted);cursor:pointer;text-align:center;transition:all 0.15s}
+.era-btn:hover{border-color:var(--blue);color:var(--blue)}
+.era-btn.active{background:var(--blue);border-color:var(--blue);color:#fff;font-weight:500}
+/* TABS */
+.tabs{display:flex;border-bottom:1px solid var(--border)}
+.tab{flex:1;padding:10px 6px;font-size:12px;font-weight:500;text-align:center;cursor:pointer;color:var(--muted);border-bottom:2px solid transparent;transition:all 0.15s}
+.tab:hover{color:var(--text)}
+.tab.active{color:var(--blue);border-bottom-color:var(--blue)}
+.tab-panel{display:none;padding:1.25rem 1.5rem}
+.tab-panel.open{display:block}
+.metrics-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:1rem}
+.dm{background:var(--surface2);border-radius:8px;padding:10px 12px}
+.dm-label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:3px}
+.dm-val{font-family:'DM Mono',monospace;font-size:17px;font-weight:500}
+.dm-sub{font-size:10px;color:var(--dim);margin-top:2px}
+.picks-title{font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:var(--muted);margin-bottom:10px;font-family:'DM Mono',monospace}
+.pick-item{display:flex;justify-content:space-between;align-items:flex-start;padding:9px 0;border-bottom:1px solid var(--border)}
+.pick-item:last-child{border-bottom:none}
+.pick-tag{font-size:10px;color:var(--dim);margin-bottom:2px}
+.pick-name{font-size:13px;font-weight:500}
+.pick-rd{font-size:10px;color:var(--muted);margin-top:1px}
+.pick-dv{font-family:'DM Mono',monospace;font-size:12px;font-weight:500;white-space:nowrap;padding-top:12px}
+.pos-row{display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid var(--border)}
+.pos-row:last-child{border-bottom:none}
+.pos-name{font-size:12px;font-family:'DM Mono',monospace;width:44px;flex-shrink:0;color:var(--muted)}
+.pos-bar-wrap{flex:1;height:6px;background:var(--surface2);border-radius:3px;overflow:hidden}
+.pos-bar{height:6px;border-radius:3px}
+.pos-val{font-size:11px;font-family:'DM Mono',monospace;width:44px;text-align:right;flex-shrink:0}
+.year-highlight{background:var(--green-bg);border:1px solid rgba(10,124,85,0.2);border-radius:10px;padding:12px 14px;margin-bottom:10px}
+.yh-label{font-size:11px;color:var(--green);margin-bottom:4px;font-weight:500}
+.yh-year{font-family:'Bebas Neue',sans-serif;font-size:36px;line-height:1;color:var(--green)}
+.yh-avg{font-size:12px;color:var(--green);margin-top:2px}
+.bust-box{background:var(--red-bg);border:1px solid rgba(192,57,43,0.15);border-radius:10px;padding:12px 14px}
+.bust-label{font-size:11px;color:var(--red);margin-bottom:4px;font-weight:500}
+.bust-val{font-family:'Bebas Neue',sans-serif;font-size:36px;line-height:1;color:var(--red)}
+.bust-sub{font-size:11px;color:var(--red);margin-top:2px}
+.share-btn{display:flex;align-items:center;justify-content:center;gap:6px;margin:0 1.5rem 1.25rem;padding:9px 14px;border:1px solid var(--border2);border-radius:8px;background:transparent;font-size:12px;font-family:'DM Sans',sans-serif;color:var(--muted);cursor:pointer;transition:all 0.15s;width:calc(100% - 3rem)}
+.share-btn:hover{border-color:var(--blue);color:var(--blue)}
+.chart-section{max-width:1400px;margin:0 auto;padding:0 2.5rem 3rem}
+.chart-box{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:1.5rem}
+.chart-title{font-size:14px;font-weight:500;margin-bottom:4px}
+.chart-sub{font-size:12px;color:var(--muted);margin-bottom:1rem}
+.plain-note{font-size:12px;line-height:1.5;color:var(--muted);background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px 12px;margin:0 0 1rem}
+.plain-note strong{color:var(--text);font-weight:600}
+.steals-box{margin-top:1.5rem;background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:1.5rem}
+.steals-table{width:100%;border-collapse:collapse;font-size:13px}
+.steals-table th{font-size:10px;color:var(--muted);font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:0.06em;text-align:left;padding:0 0 8px}
+.steals-table td{border-top:1px solid var(--border);padding:10px 0}
+.steals-table td:last-child,.steals-table th:last-child{text-align:right}
+.steal-player{font-weight:600}
+.steal-meta{color:var(--muted);font-family:'DM Mono',monospace}
+.steal-delta{color:var(--green);font-family:'DM Mono',monospace;font-weight:500}
+.legend-row{display:flex;gap:16px;margin-bottom:1rem;font-size:12px;color:var(--muted)}
+.ldot{width:10px;height:10px;border-radius:2px;display:inline-block;margin-right:4px;vertical-align:middle}
+.g-ap{background:#e6f7f1;color:#0a7c55}.g-a{background:#eaf6f1;color:#0d8c62}.g-am{background:#edf5f0;color:#117a56}
+.g-bp{background:#e8f1fb;color:#1a5fa8}.g-b{background:#edf3fa;color:#1e6dbf}.g-bm{background:#fef3e2;color:#b35c00}
+.g-cp{background:#fdf0ee;color:#c0392b}.g-c{background:#fcecea;color:#c0392b}.g-f{background:#fce8e6;color:#a93226}
+@media(max-width:900px){.body-wrap{grid-template-columns:1fr}.sidebar{position:static}}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-inner">
+    <div>
+      <h1>NFL Draft<br><em>Report Cards</em></h1>
+      <div class="header-desc">Which teams found the most value in the draft from 2010–2022? We compare each pick's actual career performance to what you'd normally expect at that draft slot.</div>
+    </div>
+    <div class="stat-pills">
+      <div class="stat-pill"><div class="sp-val">32</div><div class="sp-lbl">Franchises<br>analyzed</div></div>
+      <div class="stat-pill"><div class="sp-val">3,320</div><div class="sp-lbl">Draft picks<br>evaluated</div></div>
+      <div class="stat-pill"><div class="sp-val">13</div><div class="sp-lbl">Years of<br>draft data</div></div>
+    </div>
+  </div>
+</div>
+
+<div class="explainer">
+  <div class="explainer-inner">
+    <strong>How to read this:</strong> The score (+/- number) is how much better or worse a team drafted vs. the league average at each pick slot. <strong>+5.0</strong> = their picks outperformed expectations by 5 Approximate Value points per pick. This dashboard uses 2010–2022 draft results.
+  </div>
+</div>
+
+<div class="controls">
+  <div class="controls-inner">
+    <span class="ctrl-label">Grade:</span>
+    <button class="pill active" data-grade="all">All teams</button>
+    <button class="pill" data-grade="A">A tier</button>
+    <button class="pill" data-grade="B">B tier</button>
+    <button class="pill" data-grade="C">C / F</button>
+    <span class="ctrl-label" style="margin-left:8px">Sort:</span>
+    <button class="pill active" data-sort="rank">Best drafters</button>
+    <button class="pill" data-sort="hit">Hit rate</button>
+    <button class="pill" data-sort="pb">Pro bowlers</button>
+    <input class="search-input" id="searchBox" placeholder="Search team...">
+  </div>
+</div>
+
+<div class="body-wrap">
+  <div>
+    <div class="count-line" id="countLine">Showing all 32 franchises</div>
+    <div class="team-grid" id="teamGrid"></div>
+  </div>
+  <div class="sidebar">
+    <div class="sidebar-card" id="sidebarCard">
+      <div class="sidebar-empty" id="emptyState">
+        <div class="arrow">👆</div>
+        <div><strong>Click any team card</strong> to see their full draft breakdown — positions, best year, bust rate, and more.<br><br>Relocated franchises are grouped into their current team card.</div>
+      </div>
+      <div class="detail" id="detailPanel">
+        <div class="detail-hero">
+          <img class="detail-logo" id="dpLogo" src="" alt="" onerror="this.style.display='none';document.getElementById('dpLogoFb').style.display='flex'">
+          <div class="detail-logo-fb" id="dpLogoFb" style="display:none"></div>
+          <div>
+            <div class="detail-team" id="dpTeam"></div>
+            <div class="detail-rank" id="dpRank"></div>
+          </div>
+        </div>
+        <div class="detail-grade-row">
+          <div class="detail-grade-letter" id="dpGrade"></div>
+          <div class="detail-grade-desc" id="dpGradeDesc"></div>
+        </div>
+        <!-- ERA TOGGLE -->
+        <div class="era-toggle" id="eraToggle">
+          <div class="era-toggle-label">View era</div>
+          <div class="era-btns" id="eraBtns"></div>
+        </div>
+        <div class="tabs">
+          <div class="tab active" data-tab="overview">Overview</div>
+          <div class="tab" data-tab="positions">Positions</div>
+          <div class="tab" data-tab="history">Best year</div>
+        </div>
+        <div class="tab-panel open" id="tab-overview">
+          <div class="metrics-grid">
+            <div class="dm"><div class="dm-label">Draft score</div><div class="dm-val" id="dpDelta"></div><div class="dm-sub">AV above expected / pick</div></div>
+            <div class="dm"><div class="dm-label">Hit rate</div><div class="dm-val" id="dpHit"></div><div class="dm-sub">picks that beat slot</div></div>
+            <div class="dm"><div class="dm-label">Pro bowlers</div><div class="dm-val" id="dpPB"></div><div class="dm-sub">players 2010–22</div></div>
+            <div class="dm"><div class="dm-label">All-pros</div><div class="dm-val" id="dpAP"></div><div class="dm-sub">1st team selections</div></div>
+            <div class="dm"><div class="dm-label">Total picks</div><div class="dm-val" id="dpN"></div><div class="dm-sub">draft selections made</div></div>
+            <div class="dm"><div class="dm-label">AV surplus</div><div class="dm-val" id="dpTot"></div><div class="dm-sub">total above expected</div></div>
+          </div>
+          <div class="picks-title">Notable picks</div>
+          <div class="pick-item">
+            <div><div class="pick-tag">Biggest steal</div><div class="pick-name" id="dpBestName"></div><div class="pick-rd" id="dpBestRd"></div></div>
+            <div class="pick-dv" style="color:var(--green)" id="dpBestD"></div>
+          </div>
+          <div class="pick-item">
+            <div><div class="pick-tag">Biggest underperformer</div><div class="pick-name" id="dpWorstName"></div><div class="pick-rd" id="dpWorstRd"></div></div>
+            <div class="pick-dv" style="color:var(--red)" id="dpWorstD"></div>
+          </div>
+        </div>
+        <div class="tab-panel" id="tab-positions">
+          <div style="font-size:12px;color:var(--muted);margin-bottom:12px">Average AV above/below expectation by position group</div>
+          <div id="posRows"></div>
+        </div>
+        <div class="tab-panel" id="tab-history">
+          <div class="year-highlight">
+            <div class="yh-label">Best draft class</div>
+            <div class="yh-year" id="bestYear"></div>
+            <div class="yh-avg" id="bestYearAvg"></div>
+          </div>
+          <div class="bust-box">
+            <div class="bust-label">1st round bust rate</div>
+            <div class="bust-val" id="bustRate"></div>
+            <div class="bust-sub" id="bustSub"></div>
+          </div>
+        </div>
+        <button class="share-btn" id="shareBtn">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Save card as PNG
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="chart-section">
+  <div class="chart-box">
+    <div class="chart-title">How every franchise stacks up</div>
+    <div class="chart-sub">Average draft score per pick across the 2010–2022 dataset — positive = found more value than expected, negative = missed on picks.</div>
+    <div class="plain-note"><strong>How should I read the score and grade?</strong> The score shows how far above or below expectation a team drafted per pick. The grade ranks teams against each other, so a small positive score can still be a low grade if most teams did better.</div>
+    <div class="legend-row">
+      <span><span class="ldot" style="background:#0a7c55"></span>Above expectation</span>
+      <span><span class="ldot" style="background:#c0392b"></span>Below expectation</span>
+    </div>
+    <div style="position:relative;width:100%;height:300px">
+      <canvas id="barChart" role="img" aria-label="Bar chart of draft efficiency for all 32 NFL franchises from 2010 through 2022">Chiefs +6.88 to Jets +0.40</canvas>
+    </div>
+  </div>
+</div>
+
+<div class="chart-section">
+  <div class="chart-box">
+    <div class="chart-title">Model predictions vs. actual career AV</div>
+    <div class="chart-sub">Each point compares the Random Forest prediction to the player's actual career AV.</div>
+    <div class="plain-note"><strong>How to read this:</strong> Each dot is one drafted player. Farther right means the model expected more career value. Higher up means the player actually produced more career value. Dots above the gray line beat the model; dots below it underperformed.</div>
+    <div style="position:relative;width:100%;height:300px">
+      <canvas id="predictionScatter" role="img" aria-label="Scatter plot of predicted AV versus actual career AV"></canvas>
+    </div>
+  </div>
+</div>
+
+<div class="chart-section">
+  <div class="steals-box">
+    <div class="chart-title">Top Draft Steals</div>
+    <div class="chart-sub">Players with the largest career AV above expected value for their draft slot.</div>
+    <table class="steals-table">
+      <thead>
+        <tr><th>Player</th><th>Team</th><th>Pick</th><th>AV Delta</th></tr>
+      </thead>
+      <tbody id="stealsBody"></tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+// Each franchise entry has eras[] — array of team data objects
+// For non-relocated teams, eras has one entry. For relocated, two.
+const GRADE_DESCS={'A+':'Elite drafting. Consistently found stars other teams missed.','A':'Excellent. Strong value across almost every draft.','A-':'Very good. More hits than misses over the decade.','B+':'Above average. Found solid starters and a few stars.','B':'Average to good. Roughly met expectations most years.','B-':'Slightly below average. Some good picks, some wasted slots.','C+':'Below average. More misses than hits at key positions.','C':'Poor drafting. Repeatedly failed to develop draft capital.','D':'Very poor. Picks fell well below draft-slot expectations.','F':'Very poor. Picks significantly underperformed their slots.'};
+const GC={'A+':'g-ap','A':'g-a','A-':'g-am','B+':'g-bp','B':'g-b','B-':'g-bm','C+':'g-cp','C':'g-c','D':'g-c','F':'g-f'};
+const GCOL={'A+':'#0a7c55','A':'#0d8c62','A-':'#117a56','B+':'#1a5fa8','B':'#1e6dbf','B-':'#b35c00','C+':'#c0392b','D':'#c0392b','F':'#a93226'};
+const dc=v=>v>=0?'var(--green)':'var(--red)';
+const fmt=v=>(v>=0?'+':'')+v.toFixed(2);
+const esc=value=>String(value ?? '').replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
+
+const TOP_STEALS=[
+  {player:'Russell Wilson',team:'SEA',pick:75,av_delta:130.0},
+  {player:'Bobby Wagner',team:'SEA',pick:47,av_delta:116.6},
+  {player:'Aaron Donald',team:'STL',pick:13,av_delta:100.3},
+  {player:'Cameron Heyward',team:'PIT',pick:31,av_delta:99.9},
+  {player:'Dak Prescott',team:'DAL',pick:135,av_delta:96.4},
+  {player:'Jason Kelce',team:'PHI',pick:191,av_delta:95.6},
+  {player:'Lamar Jackson',team:'BAL',pick:32,av_delta:95.1},
+  {player:'Demario Davis',team:'NYJ',pick:77,av_delta:94.1},
+  {player:'Kirk Cousins',team:'WAS',pick:102,av_delta:93.4},
+  {player:'Cameron Jordan',team:'NOR',pick:24,av_delta:91.9},
+];
+
+const POS={"ARI":{"CB":3.37,"DL":2.16,"EDGE":-3.45,"LB":-5.29,"OL":2.72,"QB":-8.06,"RB":0.44,"S":3.75,"ST":3.21,"TE":-2.11,"WR":1.62},"ATL":{"CB":5.58,"DL":-0.93,"EDGE":10.11,"LB":-1.57,"OL":7.03,"QB":3.23,"RB":-1.11,"S":2.57,"ST":-5.17,"TE":5.72,"WR":2.52},"BAL":{"CB":8.97,"DL":4.27,"EDGE":7.62,"LB":11.33,"OL":3.38,"QB":13.38,"RB":2.58,"S":5.14,"ST":10.6,"TE":4.1,"WR":5.85},"BUF":{"CB":4.58,"DL":5.29,"EDGE":7.56,"LB":5.29,"OL":8.32,"QB":16.59,"RB":4.19,"S":2.5,"ST":-5.58,"TE":-1.76,"WR":3.68},"CAR":{"CB":5.14,"DL":5.06,"EDGE":0.75,"LB":11.71,"OL":0.16,"QB":-0.27,"RB":2.87,"S":3.97,"ST":3.97,"TE":-3.4,"WR":2.86},"CHI":{"CB":4.14,"DL":2.38,"EDGE":3.4,"LB":8.89,"OL":1.78,"QB":-11.99,"RB":2.5,"S":3.91,"ST":7.78,"TE":6.56,"WR":5.59},"CIN":{"CB":2.16,"DL":7.83,"EDGE":-2.79,"LB":3.87,"OL":-0.06,"QB":-4.76,"RB":3.42,"S":0.08,"ST":3.17,"TE":4.61,"WR":3.07},"CLE":{"CB":-0.06,"DL":5.12,"EDGE":-1.41,"LB":4.78,"OL":-2.4,"QB":-12.4,"RB":-3.16,"S":3.95,"ST":0.67,"TE":1.65,"WR":4.16},"DAL":{"CB":8.18,"DL":6.36,"EDGE":11.79,"LB":2.61,"OL":9.95,"QB":14.62,"RB":4.46,"S":5.97,"ST":9.71,"TE":5.3,"WR":7.47},"DEN":{"CB":4.43,"DL":3.56,"EDGE":4.66,"LB":2.75,"OL":2.24,"QB":-3.38,"RB":4.88,"S":9.36,"ST":4.5,"TE":0.43,"WR":5.85},"DET":{"CB":2.13,"DL":8.62,"EDGE":-1.25,"LB":0.75,"OL":1.71,"QB":-2.01,"RB":2.08,"S":4.91,"ST":2.37,"TE":7.27,"WR":4.22},"GNB":{"CB":4.23,"DL":3.97,"EDGE":5.95,"LB":3.43,"OL":6.43,"QB":2.48,"RB":4.89,"S":5.71,"ST":3.67,"TE":5.16,"WR":9.47},"HOU":{"CB":2.07,"DL":7.93,"EDGE":3.4,"LB":0.93,"OL":0.19,"QB":-2.45,"RB":3.46,"S":4.56,"ST":3.28,"TE":3.87,"WR":5.11},"IND":{"CB":2.86,"DL":3.38,"EDGE":4.19,"LB":3.62,"OL":3.66,"QB":-3.24,"RB":3.99,"S":3.91,"ST":4.22,"TE":3.73,"WR":3.47},"JAX":{"CB":-1.19,"DL":-0.63,"EDGE":-4.61,"LB":-2.35,"OL":-2.18,"QB":-13.51,"RB":-0.54,"S":-0.04,"ST":-1.36,"TE":-1.96,"WR":0.64},"KAN":{"CB":8.81,"DL":6.42,"EDGE":9.53,"LB":5.6,"OL":7.72,"QB":12.67,"RB":5.08,"S":7.13,"ST":9.98,"TE":6.23,"WR":18.69},"LAC":{"CB":4.04,"DL":3.62,"EDGE":4.71,"LB":3.95,"OL":1.58,"QB":8.29,"RB":1.28,"S":4.38,"ST":1.27,"TE":1.9,"WR":4.69},"SDG":{"CB":3.44,"DL":2.78,"EDGE":2.39,"LB":2.84,"OL":1.06,"QB":2.41,"RB":3.14,"S":3.65,"ST":1.96,"TE":2.98,"WR":5.79},"LAR":{"CB":2.4,"DL":4.17,"EDGE":3.07,"LB":2.66,"OL":1.4,"QB":0.46,"RB":2.27,"S":3.18,"ST":1.62,"TE":1.01,"WR":5.58},"STL":{"DL":20.09,"LB":2.22,"OL":2.3,"QB":-19.36,"RB":0.93,"ST":20.03,"TE":-4.62,"WR":-6.32},"LVR":{"CB":-3.96,"DL":-2.8,"OL":-4.64,"RB":-0.65,"S":-3.72,"WR":-2.5},"OAK":{"CB":2.9,"DL":1.27,"EDGE":0.32,"LB":1.12,"OL":-0.91,"QB":-0.48,"RB":2.55,"S":2.29,"ST":1.68,"TE":1.02,"WR":4.36},"MIA":{"CB":3.61,"DL":2.25,"EDGE":-4.44,"LB":3.46,"OL":0.42,"QB":-5.24,"RB":3.18,"S":4.81,"ST":2.76,"TE":1.36,"WR":6.37},"MIN":{"CB":1.54,"DL":1.24,"EDGE":0.57,"LB":2.08,"OL":-0.77,"QB":-3.42,"RB":3.38,"S":3.95,"ST":1.38,"TE":3.1,"WR":6.57},"NOR":{"CB":9.44,"DL":12.83,"EDGE":14.32,"LB":9.39,"OL":8.88,"QB":2.75,"RB":6.72,"S":9.62,"ST":12.27,"TE":8.56,"WR":10.93},"NWE":{"CB":4.29,"DL":4.28,"EDGE":4.25,"LB":4.75,"OL":6.12,"QB":2.04,"RB":4.33,"S":5.0,"ST":3.11,"TE":6.93,"WR":3.38},"NYG":{"CB":0.93,"DL":1.44,"EDGE":-1.08,"LB":0.32,"OL":-1.96,"QB":-5.88,"RB":2.09,"S":1.88,"ST":0.5,"TE":0.58,"WR":1.74},"NYJ":{"CB":-0.47,"DL":-1.28,"EDGE":-3.45,"LB":-0.73,"OL":-2.85,"QB":-13.88,"RB":-0.2,"S":-1.73,"ST":-2.13,"TE":-1.24,"WR":1.58},"PHI":{"CB":5.61,"DL":5.28,"EDGE":6.03,"LB":5.75,"OL":8.47,"QB":3.28,"RB":4.35,"S":5.41,"ST":7.62,"TE":7.84,"WR":5.27},"PIT":{"CB":5.56,"DL":8.38,"EDGE":7.58,"LB":5.37,"OL":3.93,"QB":1.24,"RB":4.16,"S":5.42,"ST":5.04,"TE":3.22,"WR":4.78},"SEA":{"CB":1.19,"DL":0.8,"EDGE":-5.76,"LB":22.93,"OL":5.65,"QB":59.54,"RB":1.37,"S":-3.76,"ST":10.47,"TE":-2.05,"WR":3.7},"SFO":{"CB":0.14,"DL":1.61,"EDGE":11.92,"LB":8.0,"OL":4.62,"QB":0.92,"RB":-3.17,"S":6.74,"ST":2.5,"TE":1.91,"WR":-1.0},"TAM":{"CB":3.55,"DL":1.7,"EDGE":10.74,"LB":9.87,"OL":17.13,"QB":-13.62,"RB":-1.82,"S":12.12,"ST":-3.98,"TE":-5.97,"WR":5.36},"TEN":{"CB":-1.09,"DL":8.56,"EDGE":1.36,"LB":5.53,"OL":-0.94,"QB":-8.58,"RB":0.81,"S":12.94,"TE":4.77,"WR":-1.98},"WAS":{"CB":1.7,"DL":7.29,"EDGE":-7.76,"LB":5.19,"OL":6.86,"QB":7.18,"RB":1.0,"S":0.01,"ST":-6.43,"TE":-3.1,"WR":-1.39}};
+
+const BEST={"ARI":{"year":2015,"avg":9.35},"ATL":{"year":2016,"avg":16.63},"BAL":{"year":2018,"avg":20.34},"BUF":{"year":2017,"avg":23.29},"CAR":{"year":2017,"avg":12.74},"CHI":{"year":2016,"avg":9.35},"CIN":{"year":2011,"avg":11.3},"CLE":{"year":2014,"avg":7.06},"DAL":{"year":2016,"avg":17.14},"DEN":{"year":2012,"avg":12.77},"DET":{"year":2013,"avg":10.19},"GNB":{"year":2010,"avg":15.53},"HOU":{"year":2012,"avg":14.68},"IND":{"year":2018,"avg":12.06},"JAX":{"year":2016,"avg":11.74},"KAN":{"year":2017,"avg":17.62},"LAC":{"year":2018,"avg":10.33},"SDG":{"year":2015,"avg":11.58},"LAR":{"year":2017,"avg":11.87},"STL":{"year":2012,"avg":6.35},"LVR":{"year":2021,"avg":-1.42},"OAK":{"year":2014,"avg":27.4},"MIA":{"year":2012,"avg":10.83},"MIN":{"year":2015,"avg":15.98},"NOR":{"year":2017,"avg":31.24},"NWE":{"year":2016,"avg":18.51},"NYG":{"year":2010,"avg":8.44},"NYJ":{"year":2011,"avg":8.54},"PHI":{"year":2018,"avg":19.99},"PIT":{"year":2010,"avg":16.52},"SEA":{"year":2012,"avg":29.65},"SFO":{"year":2018,"avg":10.53},"TAM":{"year":2012,"avg":14.76},"TEN":{"year":2019,"avg":21.58},"WAS":{"year":2014,"avg":9.53}};
+
+const BUST={"ARI":25.0,"ATL":7.7,"BAL":28.6,"BUF":16.7,"CAR":8.3,"CHI":33.3,"CIN":50.0,"CLE":41.2,"DAL":8.3,"DEN":25.0,"DET":13.3,"GNB":28.6,"HOU":18.2,"IND":22.2,"JAX":25.0,"KAN":20.0,"LAC":0.0,"SDG":14.3,"LAR":0.0,"STL":0.0,"LVR":100.0,"OAK":40.0,"MIA":20.0,"MIN":37.5,"NOR":20.0,"NWE":27.3,"NYG":25.0,"NYJ":47.1,"PHI":33.3,"PIT":25.0,"SEA":22.2,"SFO":25.0,"TAM":16.7,"TEN":28.6,"WAS":33.3};
+
+// Per-team data is loaded from /api/teams.
+let RAW={};
+
+// Franchise definitions
+const ESPN = abbr => `https://a.espncdn.com/i/teamlogos/nfl/500/${abbr}.png`;
+const FRANCHISES = [
+  {id:'NOR', name:'New Orleans Saints', logo:ESPN('no'), eras:[{label:'NOR 2010–22', key:'NOR'}]},
+  {id:'KAN', name:'Kansas City Chiefs', logo:ESPN('kc'), eras:[{label:'KAN 2010–22', key:'KAN'}]},
+  {id:'DAL', name:'Dallas Cowboys', logo:ESPN('dal'), eras:[{label:'DAL 2010–22', key:'DAL'}]},
+  {id:'SEA', name:'Seattle Seahawks', logo:ESPN('sea'), eras:[{label:'SEA 2010–22', key:'SEA'}]},
+  {id:'BAL', name:'Baltimore Ravens', logo:ESPN('bal'), eras:[{label:'BAL 2010–22', key:'BAL'}]},
+  {id:'GNB', name:'Green Bay Packers', logo:ESPN('gb'), eras:[{label:'GNB 2010–22', key:'GNB'}]},
+  {id:'BUF', name:'Buffalo Bills', logo:ESPN('buf'), eras:[{label:'BUF 2010–22', key:'BUF'}]},
+  {id:'PHI', name:'Philadelphia Eagles', logo:ESPN('phi'), eras:[{label:'PHI 2010–22', key:'PHI'}]},
+  {id:'PIT', name:'Pittsburgh Steelers', logo:ESPN('pit'), eras:[{label:'PIT 2010–22', key:'PIT'}]},
+  {id:'NWE', name:'New England Patriots', logo:ESPN('ne'), eras:[{label:'NWE 2010–22', key:'NWE'}]},
+  {id:'MIA', name:'Miami Dolphins', logo:ESPN('mia'), eras:[{label:'MIA 2010–22', key:'MIA'}]},
+  {id:'LAC', name:'Los Angeles Chargers', logo:ESPN('lac'), eras:[{label:'Chargers 2010–22', key:'SDG'}]},
+  {id:'TAM', name:'Tampa Bay Buccaneers', logo:ESPN('tb'), eras:[{label:'TAM 2010–22', key:'TAM'}]},
+  {id:'DEN', name:'Denver Broncos', logo:ESPN('den'), eras:[{label:'DEN 2010–22', key:'DEN'}]},
+  {id:'DET', name:'Detroit Lions', logo:ESPN('det'), eras:[{label:'DET 2010–22', key:'DET'}]},
+  {id:'CHI', name:'Chicago Bears', logo:ESPN('chi'), eras:[{label:'CHI 2010–22', key:'CHI'}]},
+  {id:'CAR', name:'Carolina Panthers', logo:ESPN('car'), eras:[{label:'CAR 2010–22', key:'CAR'}]},
+  {id:'ATL', name:'Atlanta Falcons', logo:ESPN('atl'), eras:[{label:'ATL 2010–22', key:'ATL'}]},
+  {id:'HOU', name:'Houston Texans', logo:ESPN('hou'), eras:[{label:'HOU 2010–22', key:'HOU'}]},
+  {id:'IND', name:'Indianapolis Colts', logo:ESPN('ind'), eras:[{label:'IND 2010–22', key:'IND'}]},
+  {id:'LAR', name:'Los Angeles Rams', logo:ESPN('lar'), eras:[{label:'Rams 2010–22', key:'STL'}]},
+  {id:'CIN', name:'Cincinnati Bengals', logo:ESPN('cin'), eras:[{label:'CIN 2010–22', key:'CIN'}]},
+  // Commanders — WAS
+  {id:'WAS', name:'Washington Commanders', logo:ESPN('wsh'), eras:[{label:'WAS 2010–22', key:'WAS'}]},
+  {id:'LVR', name:'Las Vegas Raiders', logo:ESPN('lv'), eras:[{label:'Raiders 2010–22', key:'OAK'}]},
+  {id:'SFO', name:'San Francisco 49ers', logo:ESPN('sf'), eras:[{label:'SFO 2010–22', key:'SFO'}]},
+  {id:'MIN', name:'Minnesota Vikings', logo:ESPN('min'), eras:[{label:'MIN 2010–22', key:'MIN'}]},
+  {id:'ARI', name:'Arizona Cardinals', logo:ESPN('ari'), eras:[{label:'ARI 2010–22', key:'ARI'}]},
+  {id:'TEN', name:'Tennessee Titans', logo:ESPN('ten'), eras:[{label:'TEN 2010–22', key:'TEN'}]},
+  {id:'NYG', name:'New York Giants', logo:ESPN('nyg'), eras:[{label:'NYG 2010–22', key:'NYG'}]},
+  {id:'CLE', name:'Cleveland Browns', logo:ESPN('cle'), eras:[{label:'CLE 2010–22', key:'CLE'}]},
+  {id:'JAX', name:'Jacksonville Jaguars', logo:ESPN('jax'), eras:[{label:'JAX 2010–22', key:'JAX'}]},
+  {id:'NYJ', name:'New York Jets', logo:ESPN('nyj'), eras:[{label:'NYJ 2010–22', key:'NYJ'}]},
+];
+
+// For card display, use the primary (first or best) era data for rank/grade
+// For relocated teams, show combined or primary era avg
+function getPrimaryData(f) {
+  if(f.eras.length===1) return RAW[f.eras[0].key];
+  // For multi-era, use the era with more picks (generally the longer one)
+  const keys=f.eras.map(e=>e.key);
+  const best=keys.reduce((a,b)=>(RAW[a]&&RAW[b])?(RAW[a].n>=RAW[b].n?a:b):a);
+  return RAW[best];
+}
+
+// Combined avg for relocated (weighted by picks)
+function getCombinedAvg(f) {
+  if(f.eras.length===1) return RAW[f.eras[0].key]?.avg ?? 0;
+  let totalN=0,totalDelta=0;
+  f.eras.forEach(e=>{const d=RAW[e.key];if(d){totalN+=d.n;totalDelta+=d.delta;}});
+  return totalN>0?totalDelta/totalN:0;
+}
+
+function getCombinedGrade(f) {
+  if(f.eras.length===1) return RAW[f.eras[0].key]?.grade ?? 'C';
+  const avg=getCombinedAvg(f);
+  // Map to grade
+  if(avg>=7) return 'A+'; if(avg>=5.5) return 'A'; if(avg>=4.5) return 'A-';
+  if(avg>=3.5) return 'B+'; if(avg>=2) return 'B'; if(avg>=1) return 'B-';
+  if(avg>=0) return 'C+'; if(avg>=-1) return 'C'; return 'F';
+}
+
+// Build sorted list for grid
+function buildSortedFranchises() {
+  return FRANCHISES.map(f=>({...f,_avg:getCombinedAvg(f),_grade:getCombinedGrade(f)}));
+}
+
+const dc2=v=>v>=0?'var(--green)':'var(--red)';
+
+let activeId=null, activeEraKey=null, activeGrade='all', activeSort='rank', searchQ='', barChart=null, predictionScatter=null;
+
+function normalizeTeam(row) {
+  return {
+    n:row.n_picks,
+    actual:row.total_actual_av,
+    expected:row.total_expected_av,
+    delta:row.total_delta,
+    avg:row.avg_delta,
+    hit:row.hit_rate,
+    pb:row.pro_bowlers,
+    ap:row.all_pros,
+    bp:row.best_pick_player,
+    br:row.best_pick_round,
+    bd:row.best_pick_av_delta,
+    wp:row.worst_pick_player,
+    wr:row.worst_pick_round,
+    wd:row.worst_pick_av_delta,
+    grade:row.grade,
+    rank:row.rank
+  };
+}
+
+async function loadTeams() {
+  let response=await fetch('/api/teams');
+  if(!response.ok) response=await fetch('/data/team_scores.json');
+  if(!response.ok) throw new Error(`Failed to load teams: ${response.status}`);
+  const teams=await response.json();
+  const rows=Array.isArray(teams)?teams:Object.values(teams);
+  RAW=rows.reduce((acc,row)=>{
+    acc[String(row.team).trim()]=normalizeTeam(row);
+    return acc;
+  },{});
+}
+
+function filtered() {
+  let d=buildSortedFranchises();
+  if(activeGrade==='A') d=d.filter(f=>f._grade.startsWith('A'));
+  else if(activeGrade==='B') d=d.filter(f=>f._grade.startsWith('B'));
+  else if(activeGrade==='C') d=d.filter(f=>!f._grade.startsWith('A')&&!f._grade.startsWith('B'));
+  if(searchQ) d=d.filter(f=>f.id.toLowerCase().includes(searchQ)||f.name.toLowerCase().includes(searchQ));
+  if(activeSort==='hit') d.sort((a,b)=>{const da=RAW[a.eras[0].key],db=RAW[b.eras[0].key];return(db?db.hit:0)-(da?da.hit:0);});
+  else if(activeSort==='pb') d.sort((a,b)=>{const da=RAW[a.eras[0].key],db=RAW[b.eras[0].key];return(db?db.pb:0)-(da?da.pb:0);});
+  else d.sort((a,b)=>b._avg-a._avg);
+  return d;
+}
+
+function renderGrid() {
+  const data=filtered();
+  document.getElementById('countLine').textContent=`Showing ${data.length} of 32 franchises`;
+  const grid=document.getElementById('teamGrid');
+  grid.innerHTML='';
+  data.forEach((f,i)=>{
+    const avg=f._avg, grade=f._grade;
+    const isRelocated=f.eras.length>1;
+    const c=document.createElement('div');
+    c.className='card'+(activeId===f.id?' active':'');
+    c.innerHTML=`
+      ${isRelocated?`<div class="era-badge">2 eras</div>`:''}
+      <img class="card-logo" src="${esc(f.logo)}" alt="${esc(f.name)}" onerror="this.style.display='none'">
+      <div class="card-top">
+        <div class="card-team">${esc(f.name)}</div>
+        <div class="card-rank">#${i+1}</div>
+      </div>
+      <div class="card-delta" style="color:${dc2(avg)}">${fmt(avg)}</div>
+      <div class="card-delta-sub">draft score / pick${isRelocated?' (combined)':''}</div>
+      <div class="card-grade ${GC[grade]||'g-c'}">${grade}</div>
+    `;
+    c.addEventListener('click',()=>{
+      if(activeId===f.id){activeId=null;activeEraKey=null;renderGrid();hideDetail();return;}
+      activeId=f.id;
+      activeEraKey=f.eras[f.eras.length-1].key; // default to most recent era
+      renderGrid();
+      showDetail(f, activeEraKey);
+    });
+    grid.appendChild(c);
+  });
+}
+
+function showDetail(f, eraKey) {
+  document.getElementById('emptyState').style.display='none';
+  document.getElementById('detailPanel').classList.add('open');
+
+  const t=RAW[eraKey];
+  if(!t) return;
+
+  // Logo
+  const dpL=document.getElementById('dpLogo'),dpF=document.getElementById('dpLogoFb');
+  let logoUrl=f.logo;
+  if(f.eras.length>1) {
+    // use era-specific logo hint
+    if(eraKey==='STL'&&f.stLogo) logoUrl=f.stLogo;
+    else if(eraKey==='OAK'&&f.oakLogo) logoUrl=f.oakLogo;
+    else if(eraKey==='SDG'&&f.altLogo) logoUrl=f.altLogo;
+  }
+  dpL.src=logoUrl; dpL.style.display='block'; dpF.style.display='none';
+  dpL.onerror=()=>{dpL.style.display='none';dpF.style.display='flex';dpF.textContent=eraKey;};
+
+  document.getElementById('dpTeam').textContent=f.name;
+  const eraLabel=f.eras.find(e=>e.key===eraKey)?.label||eraKey;
+  document.getElementById('dpRank').textContent=eraLabel+' · '+t.n+' picks';
+
+  const g=document.getElementById('dpGrade');
+  g.textContent=t.grade; g.style.color=GCOL[t.grade]||'#c0392b';
+  document.getElementById('dpGradeDesc').textContent=GRADE_DESCS[t.grade]||'';
+
+  // Era toggle
+  const toggle=document.getElementById('eraToggle');
+  const eraBtns=document.getElementById('eraBtns');
+  if(f.eras.length>1) {
+    toggle.classList.add('visible');
+    eraBtns.innerHTML='';
+    f.eras.forEach(era=>{
+      const btn=document.createElement('button');
+      btn.className='era-btn'+(era.key===eraKey?' active':'');
+      btn.textContent=era.label;
+      btn.addEventListener('click',()=>{activeEraKey=era.key;showDetail(f,era.key);});
+      eraBtns.appendChild(btn);
+    });
+  } else {
+    toggle.classList.remove('visible');
+  }
+
+  // Overview
+  const d=document.getElementById('dpDelta');
+  d.textContent=fmt(t.avg); d.style.color=dc2(t.avg);
+  document.getElementById('dpHit').textContent=(t.hit*100).toFixed(1)+'%';
+  document.getElementById('dpPB').textContent=t.pb;
+  document.getElementById('dpAP').textContent=t.ap;
+  document.getElementById('dpN').textContent=t.n;
+  document.getElementById('dpTot').textContent=(t.delta>=0?'+':'')+t.delta.toFixed(0)+' AV';
+  document.getElementById('dpBestName').textContent=t.bp;
+  document.getElementById('dpBestRd').textContent='Round '+t.br+' pick';
+  document.getElementById('dpBestD').textContent='+'+t.bd.toFixed(1)+' AV above expected';
+  document.getElementById('dpWorstName').textContent=t.wp;
+  document.getElementById('dpWorstRd').textContent='Round '+t.wr+' pick';
+  document.getElementById('dpWorstD').textContent=t.wd.toFixed(1)+' AV below expected';
+
+  // Positions
+  const posData=POS[eraKey]||{};
+  const posRows=document.getElementById('posRows');
+  posRows.innerHTML='';
+  const posEntries=Object.entries(posData).filter(([k])=>k!=='OTHER').sort((a,b)=>b[1]-a[1]);
+  const maxAbs=Math.max(...posEntries.map(([,v])=>Math.abs(v)),1);
+  posEntries.forEach(([pos,val])=>{
+    const pct=Math.abs(val)/maxAbs*100;
+    const col=val>=0?'#0a7c55':'#c0392b';
+    const row=document.createElement('div');
+    row.className='pos-row';
+    row.innerHTML=`<div class="pos-name">${esc(pos)}</div><div class="pos-bar-wrap"><div class="pos-bar" style="width:${pct}%;background:${col}"></div></div><div class="pos-val" style="color:${col}">${val>=0?'+':''}${val.toFixed(1)}</div>`;
+    posRows.appendChild(row);
+  });
+
+  // Best year + bust
+  const by=BEST[eraKey];
+  if(by){document.getElementById('bestYear').textContent=by.year;document.getElementById('bestYearAvg').textContent='+'+by.avg.toFixed(2)+' avg AV delta per pick that year';}
+  const bust=BUST[eraKey]||0;
+  document.getElementById('bustRate').textContent=bust.toFixed(1)+'%';
+  document.getElementById('bustSub').textContent=bust===0?'No 1st round busts':bust>=50?'More than half of 1st rounders flopped':bust>=30?'Rough 1st round history':bust>=20?'Some 1st round misses':'Strong 1st round hit rate';
+
+  switchTab('overview');
+}
+
+function hideDetail(){
+  document.getElementById('emptyState').style.display='';
+  document.getElementById('detailPanel').classList.remove('open');
+  document.getElementById('eraToggle').classList.remove('visible');
+}
+
+function switchTab(name){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active',t.dataset.tab===name));
+  document.querySelectorAll('.tab-panel').forEach(p=>p.classList.toggle('open',p.id==='tab-'+name));
+}
+document.querySelectorAll('.tab').forEach(t=>t.addEventListener('click',()=>switchTab(t.dataset.tab)));
+
+document.querySelectorAll('[data-grade]').forEach(b=>{
+  b.addEventListener('click',()=>{document.querySelectorAll('[data-grade]').forEach(x=>x.classList.remove('active'));b.classList.add('active');activeGrade=b.dataset.grade;activeId=null;hideDetail();renderGrid();});
+});
+document.querySelectorAll('[data-sort]').forEach(b=>{
+  b.addEventListener('click',()=>{document.querySelectorAll('[data-sort]').forEach(x=>x.classList.remove('active'));b.classList.add('active');activeSort=b.dataset.sort;renderGrid();});
+});
+document.getElementById('searchBox').addEventListener('input',e=>{searchQ=e.target.value.toLowerCase().trim();activeId=null;hideDetail();renderGrid();});
+
+document.getElementById('shareBtn').addEventListener('click',()=>{
+  const btn=document.getElementById('shareBtn');
+  btn.textContent='Saving...';
+  html2canvas(document.getElementById('sidebarCard'),{scale:2,backgroundColor:'#ffffff',useCORS:true}).then(canvas=>{
+    const link=document.createElement('a');
+    link.download=(activeId||'nfl')+'_report_card.png';
+    link.href=canvas.toDataURL('image/png');
+    link.click();
+    btn.innerHTML='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> Save card as PNG';
+  });
+});
+
+function renderSteals(){
+  const body=document.getElementById('stealsBody');
+  body.innerHTML=TOP_STEALS.slice(0,10).map(s=>`
+    <tr>
+      <td class="steal-player">${esc(s.player)}</td>
+      <td class="steal-meta">${esc(s.team)}</td>
+      <td class="steal-meta">${s.pick}</td>
+      <td class="steal-delta">+${s.av_delta.toFixed(1)}</td>
+    </tr>
+  `).join('');
+}
+
+function renderChart(){
+  const chartData=buildSortedFranchises().sort((a,b)=>b._avg-a._avg);
+  if(barChart) barChart.destroy();
+  barChart=new Chart(document.getElementById('barChart'),{
+    type:'bar',
+    data:{
+      labels:chartData.map(f=>f.id),
+      datasets:[{label:'Draft score',data:chartData.map(f=>f._avg),backgroundColor:chartData.map(f=>f._avg>=0?'rgba(10,124,85,0.75)':'rgba(192,57,43,0.75)'),borderColor:chartData.map(f=>f._avg>=0?'#0a7c55':'#c0392b'),borderWidth:1,borderRadius:4}]
+    },
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>' '+(ctx.raw>=0?'+':'')+ctx.raw.toFixed(2)+' per pick',title:ctx=>[ctx[0].label,' - '+chartData.find(f=>f.id===ctx[0].label).name]}}},
+      scales:{x:{ticks:{font:{size:10,family:'DM Mono'},autoSkip:false,maxRotation:45,color:'#999'},grid:{display:false}},y:{ticks:{font:{size:11,family:'DM Mono'},color:'#999',callback:v=>(v>0?'+':'')+v},grid:{color:'rgba(0,0,0,0.05)'}}}
+    }
+  });
+}
+
+function parseCSV(text){
+  const lines=text.trim().split(/\r?\n/);
+  const headers=lines.shift().split(',');
+  return lines.map(line=>{
+    const values=line.split(',');
+    return headers.reduce((row,header,i)=>{
+      row[header]=values[i];
+      return row;
+    },{});
+  });
+}
+
+async function renderPredictionScatter(){
+  let response=await fetch('/api/predictions');
+  if(!response.ok) response=await fetch('/data/predictions.csv');
+  if(!response.ok) throw new Error(`Failed to load predictions: ${response.status}`);
+  const rows=parseCSV(await response.text());
+  const points=rows
+    .map(row=>({x:Number(row.predicted_av),y:Number(row.career_av)}))
+    .filter(point=>Number.isFinite(point.x)&&Number.isFinite(point.y));
+  const maxAv=Math.ceil(Math.max(...points.flatMap(point=>[point.x,point.y]),1)/10)*10;
+
+  if(predictionScatter) predictionScatter.destroy();
+  predictionScatter=new Chart(document.getElementById('predictionScatter'),{
+    type:'scatter',
+    data:{
+      datasets:[{
+        label:'Draft picks',
+        data:points,
+        backgroundColor:'rgba(26,95,168,0.45)',
+        borderColor:'#1a5fa8',
+        pointRadius:3,
+        pointHoverRadius:5
+      },{
+        type:'line',
+        label:'Predicted equals actual',
+        data:[{x:0,y:0},{x:maxAv,y:maxAv}],
+        borderColor:'rgba(0,0,0,0.25)',
+        borderWidth:1,
+        pointRadius:0,
+        tension:0
+      }]
+    },
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>ctx.dataset.type==='line'?' Predicted equals actual':` Predicted ${ctx.raw.x.toFixed(1)}, actual ${ctx.raw.y.toFixed(1)}`}}},
+      scales:{
+        x:{title:{display:true,text:'Predicted AV'},min:0,max:maxAv,ticks:{font:{size:11,family:'DM Mono'},color:'#999'},grid:{color:'rgba(0,0,0,0.05)'}},
+        y:{title:{display:true,text:'Actual Career AV'},min:0,max:maxAv,ticks:{font:{size:11,family:'DM Mono'},color:'#999'},grid:{color:'rgba(0,0,0,0.05)'}}
+      }
+    }
+  });
+}
+
+async function init(){
+  document.getElementById('countLine').textContent='Loading teams...';
+  try {
+    await loadTeams();
+    renderGrid();
+    renderSteals();
+  } catch(error) {
+    console.error(error);
+    document.getElementById('countLine').textContent=`Unable to load team data: ${error.message}`;
+  }
+
+  try {
+    renderChart();
+  } catch(error) {
+    console.error(error);
+  }
+
+  try {
+    await renderPredictionScatter();
+  } catch(error) {
+    console.error(error);
+  }
+}
+
+init();
+</script>
+</body>
+</html>
+
+

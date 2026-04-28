@@ -1,0 +1,8 @@
+beautifulsoup4
+flask
+numpy
+pandas
+requests
+scikit-learn
+scipy
+waitress
