@@ -4,6 +4,16 @@ A Python and Flask dashboard that grades NFL team draft performance from 2010-20
 
 The project compares each player's actual career Approximate Value (AV) to the expected value of their draft slot, then turns that into team report cards, charts, and plain-English explanations.
 
+## Screenshots
+
+### Top Draft Steals
+
+![Top Draft Steals](top_draft_steals.png)
+
+### Predicted vs. Actual AV
+
+![Predicted vs. Actual AV](predicted_vs_actual_av.png)
+
 ## Features
 
 - Team draft efficiency rankings
@@ -66,4 +76,3 @@ This is a sports analytics project, not a final scouting model. The results are 
 ## Security Notes
 
 The Flask app is configured for local use, with debug mode disabled and only the required dashboard data files exposed.
-
