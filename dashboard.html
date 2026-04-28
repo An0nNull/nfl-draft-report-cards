@@ -284,6 +284,16 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
 </div>
 
 <script>
+const teamMap = {
+  ARI: "ARI", ATL: "ATL", BAL: "BAL", BUF: "BUF", CAR: "CAR",
+  CHI: "CHI", CIN: "CIN", CLE: "CLE", DAL: "DAL", DEN: "DEN",
+  DET: "DET", GNB: "GB", HOU: "HOU", IND: "IND", JAX: "JAX",
+  KAN: "KC", LAC: "LAC", LAR: "LA", LV: "LV", MIA: "MIA",
+  MIN: "MIN", NOR: "NO", NWE: "NE", NYG: "NYG", NYJ: "NYJ",
+  PHI: "PHI", PIT: "PIT", SEA: "SEA", SFO: "SF", TAM: "TB",
+  TEN: "TEN", WAS: "WAS"
+};
+
 // Each franchise entry has eras[] — array of team data objects
 // For non-relocated teams, eras has one entry. For relocated, two.
 const GRADE_DESCS={'A+':'Elite drafting. Consistently found stars other teams missed.','A':'Excellent. Strong value across almost every draft.','A-':'Very good. More hits than misses over the decade.','B+':'Above average. Found solid starters and a few stars.','B':'Average to good. Roughly met expectations most years.','B-':'Slightly below average. Some good picks, some wasted slots.','C+':'Below average. More misses than hits at key positions.','C':'Poor drafting. Repeatedly failed to develop draft capital.','D':'Very poor. Picks fell well below draft-slot expectations.','F':'Very poor. Picks significantly underperformed their slots.'};
@@ -485,7 +495,9 @@ function showDetail(f, eraKey) {
   dpL.src=logoUrl; dpL.style.display='block'; dpF.style.display='none';
   dpL.onerror=()=>{dpL.style.display='none';dpF.style.display='flex';dpF.textContent=eraKey;};
 
-  document.getElementById('dpTeam').textContent=f.name;
+  const team = f.id;
+  const displayTeam = teamMap[team] || team;
+  document.getElementById('dpTeam').textContent = displayTeam;
   const eraLabel=f.eras.find(e=>e.key===eraKey)?.label||eraKey;
   document.getElementById('dpRank').textContent=eraLabel+' · '+t.n+' picks';
 
