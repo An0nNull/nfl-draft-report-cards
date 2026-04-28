@@ -495,10 +495,13 @@ function showDetail(f, eraKey) {
   dpL.src=logoUrl; dpL.style.display='block'; dpF.style.display='none';
   dpL.onerror=()=>{dpL.style.display='none';dpF.style.display='flex';dpF.textContent=eraKey;};
 
-  const team = f.id;
+  document.getElementById('dpTeam').textContent = f.name;
+  const team = f.id === 'LVR' ? 'LV' : f.id;
   const displayTeam = teamMap[team] || team;
-  document.getElementById('dpTeam').textContent = displayTeam;
-  const eraLabel=f.eras.find(e=>e.key===eraKey)?.label||eraKey;
+  const rawEraLabel=f.eras.find(e=>e.key===eraKey)?.label||eraKey;
+  const eraLabel=rawEraLabel.includes(' ')
+    ? rawEraLabel.replace(/^\S+/, displayTeam)
+    : displayTeam;
   document.getElementById('dpRank').textContent=eraLabel+' · '+t.n+' picks';
 
   const g=document.getElementById('dpGrade');
